@@ -1,6 +1,5 @@
 package com.kartikay.sales_order_management_api.service;
 
-
 import com.kartikay.sales_order_management_api.domain.CatalogItem;
 import com.kartikay.sales_order_management_api.domain.Order;
 import com.kartikay.sales_order_management_api.domain.OrderItem;
@@ -24,13 +23,17 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CatalogRepository catalogRepository;
 
-    private static final BigDecimal VAT_RATE = new BigDecimal("0.12");
+    // Maintain single point for tax logic
+    private static final BigDecimal VAT_RATE = new BigDecimal("0.12"); // 12% VAT
 
     public OrderService(OrderRepository orderRepository, CatalogRepository catalogRepository) {
         this.orderRepository = orderRepository;
         this.catalogRepository = catalogRepository;
     }
 
+    /**
+     * Create a new order for a customer
+     */
     @Transactional
     public Order createOrder(String customerName, List<OrderItemRequest> items) {
         if (items == null || items.isEmpty()) {
@@ -47,11 +50,11 @@ public class OrderService {
             CatalogItem catalogItem = catalogRepository.findById(request.catalogItemId())
                     .orElseThrow(() -> new ResourceNotFoundException("Catalog item not found: " + request.catalogItemId()));
 
-            // Price snapshot
             BigDecimal price = catalogItem.getPrice();
-            BigDecimal itemTotal = price.multiply(BigDecimal.valueOf(request.quantity()));
-            subtotal = subtotal.add(itemTotal);
+            BigDecimal lineTotal = price.multiply(BigDecimal.valueOf(request.quantity()));
+            subtotal = subtotal.add(lineTotal);
 
+            // Build order item
             OrderItem orderItem = new OrderItem();
             orderItem.setCatalogItemId(catalogItem.getId());
             orderItem.setItemName(catalogItem.getName());
@@ -60,6 +63,7 @@ public class OrderService {
             order.addItem(orderItem);
         }
 
+        // Calculate tax + total
         BigDecimal vat = subtotal.multiply(VAT_RATE);
         BigDecimal total = subtotal.add(vat);
 
@@ -70,6 +74,9 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    /**
+     * Cancel an existing order
+     */
     @Transactional
     public Order cancelOrder(Long id) {
         Order order = orderRepository.findByIdWithItems(id)
@@ -83,20 +90,41 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    /**
+     * List all orders with filters (customerName, date range, pagination)
+     */
     @Transactional(readOnly = true)
     public Page<Order> listOrders(String customerName, LocalDate start, LocalDate end, Pageable pageable) {
         Specification<Order> spec = Specification
                 .where(OrderSpecification.hasCustomerName(customerName))
                 .and(OrderSpecification.createdBetween(start, end));
-        return orderRepository.findAll(spec, pageable);
+
+        Page<Order> orders = orderRepository.findAll(spec, pageable);
+
+        orders.forEach(o -> o.getItems().size());
+        return orders;
     }
 
+    /**
+     * Fetch an order by ID (with items)
+     */
     @Transactional(readOnly = true)
     public Order getOrderById(Long id) {
         return orderRepository.findByIdWithItems(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
     }
 
-    // DTO for request
+    /**
+     * Delete an order (Admin only)
+     */
+    @Transactional
+    public void deleteOrder(Long id) {
+        if (!orderRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Order not found with id: " + id);
+        }
+        orderRepository.deleteById(id);
+    }
+
+    // 🟦 DTO for request items
     public record OrderItemRequest(Long catalogItemId, int quantity) {}
 }
