@@ -1,0 +1,12 @@
+package com.kartikay.sales_order_management_api.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class HealthController {
+    @GetMapping("/")
+    public String hello() {
+        return "Sales Order API - up";
+    }
+}
