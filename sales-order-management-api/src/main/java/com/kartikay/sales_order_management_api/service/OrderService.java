@@ -125,6 +125,6 @@ public class OrderService {
         orderRepository.deleteById(id);
     }
 
-    // 🟦 DTO for request items
+    // DTO for request items
     public record OrderItemRequest(Long catalogItemId, int quantity) {}
 }

@@ -25,7 +25,7 @@ public class OrderController {
     }
 
     /**
-     * 🟩 Create a new order
+     * Create a new order
      * Accessible by USER or ADMIN
      */
     @PostMapping
@@ -40,11 +40,8 @@ public class OrderController {
     }
 
     /**
-     * 🟩 List all orders (with optional filters, pagination, and sorting)
+     * List all orders (with optional filters, pagination, and sorting)
      * Accessible by USER or ADMIN
-     *
-     * Supported params:
-     * ?customerName=&start=&end=&page=&size=&sort=creationDate,desc
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
@@ -58,7 +55,6 @@ public class OrderController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "creationDate,desc") String sort) {
 
-        // ✅ Safely handle sort parameter (e.g. "creationDate,desc")
         String[] sortParts = sort.split(",");
         String sortField = sortParts[0];
         Sort.Direction direction = (sortParts.length > 1 && sortParts[1].equalsIgnoreCase("asc"))
@@ -71,7 +67,7 @@ public class OrderController {
     }
 
     /**
-     * 🟩 Get a single order by ID
+     * Get a single order by ID
      * Returns customer info, items, subtotal, VAT, and total
      */
     @GetMapping("/{id}")
@@ -81,7 +77,7 @@ public class OrderController {
     }
 
     /**
-     * 🟩 Cancel an order
+     * Cancel an order
      * Only ADMIN can cancel
      */
     @PutMapping("/{id}/cancel")
@@ -91,7 +87,7 @@ public class OrderController {
     }
 
     /**
-     * 🟩 Permanently delete an order (optional)
+     * Permanently delete an order (optional)
      * Only ADMIN
      */
     @DeleteMapping("/{id}")
@@ -100,7 +96,7 @@ public class OrderController {
         orderService.deleteOrder(id);
     }
 
-    // ✅ Utility mapper to convert domain → DTO
+    // Utility mapper to convert domain → DTO
     private OrderResponseDTO mapToResponse(Order order) {
         List<OrderItemDTO> items = order.getItems().stream()
                 .map(i -> new OrderItemDTO(

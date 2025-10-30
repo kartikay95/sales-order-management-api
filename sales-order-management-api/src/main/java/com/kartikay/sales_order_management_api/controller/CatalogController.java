@@ -21,7 +21,7 @@ public class CatalogController {
         this.catalogService = catalogService;
     }
 
-    // ✅ GET all items
+    // GET all items
     @GetMapping
     public List<CatalogDTO> getAll() {
         return catalogService.getAllItems()
@@ -30,14 +30,14 @@ public class CatalogController {
                 .toList();
     }
 
-    // ✅ GET single item by ID
+    //GET single item by ID
     @GetMapping("/{id}")
     public CatalogDTO getById(@PathVariable Long id) {
         CatalogItem item = catalogService.getItemById(id);
         return new CatalogDTO(item.getId(), item.getName(), item.getPrice());
     }
 
-    // ✅ CREATE new catalog item (requires ADMIN role)
+    // CREATE new catalog item (ADMIN role)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public CatalogDTO createItem(@Valid @RequestBody CatalogDTO dto) {
@@ -45,7 +45,7 @@ public class CatalogController {
         return new CatalogDTO(saved.getId(), saved.getName(), saved.getPrice());
     }
 
-    // ✅ UPDATE price (requires ADMIN)
+    // UPDATE price (ADMIN)
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/price")
     public CatalogDTO updatePrice(
@@ -56,7 +56,7 @@ public class CatalogController {
         return new CatalogDTO(updated.getId(), updated.getName(), updated.getPrice());
     }
 
-    // ✅ DELETE item (requires ADMIN)
+    // DELETE item (ADMIN)
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public void deleteItem(@PathVariable Long id) {

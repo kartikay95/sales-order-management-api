@@ -39,29 +39,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String authHeader = request.getHeader("Authorization");
 
-            // 🚧 1. Check if header is present and starts with Bearer
+            // 1. Check if header is present and starts with Bearer
             if (!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            // 🚧 2. Extract token from header
+            // 2. Extract token from header
             String token = authHeader.substring(7);
 
-            // 🚧 3. Validate token
+            // 3. Validate token
             if (!jwtUtil.validateToken(token)) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            // 🚧 4. Extract username
+            // Extract username
             String username = jwtUtil.getUsernameFromToken(token);
             if (username == null) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            // 🚧 5. Proceed only if context is not already authenticated
+            // Proceed only if context is not already authenticated
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -71,7 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
-                // 🚧 6. Build authentication token
+                // Build authentication token
                 UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
@@ -81,7 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // 🚧 7. Set authentication context
+                // Set authentication context
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
 
@@ -89,7 +89,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             System.err.println("JWT authentication failed: " + ex.getMessage());
         }
 
-        // 🚧 8. Continue filter chain
+        // Continue filter chain
         filterChain.doFilter(request, response);
     }
 }
