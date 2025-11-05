@@ -1,0 +1,26 @@
+version: '1.0'
+  services:
+    db:
+      image: h2-db
+      environment:
+        db_name : salesdb
+        db_username : sa
+        db_password : sa
+      ports:
+        5432
+
+  app:
+    build: .
+    ports: 8080
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: salesdb
+      DB_USERNAME: sa
+      DB_PASSWORD: sa
+      depends_on:
+        db:
+          condition: service_healthy
+
+  volumes:
+    db_data:
